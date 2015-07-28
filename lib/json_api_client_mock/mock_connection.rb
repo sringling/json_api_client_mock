@@ -2,7 +2,7 @@ require 'ostruct'
 
 module JsonApiClientMock
   class MockConnection
-    class_attribute :mocks
+    class_attribute :mocks, :auto_generator
     self.mocks = {}
 
     # ignored
@@ -11,7 +11,9 @@ module JsonApiClientMock
     def delete(*attrs); end
 
     def execute(query)
-      if results = find_test_results(query)
+
+      results = find_test_results(query)
+      if results
         OpenStruct.new(:body => {
           query.klass.table_name => results[:results]
         })
@@ -38,7 +40,13 @@ module JsonApiClientMock
     def find_test_results(query)
       class_mocks(query).detect { |mock| mock[:conditions] == query.params } ||
         class_mocks(query).detect { |mock| mock[:conditions] && (mock[:conditions][:path] == query.path) } ||
-          class_mocks(query).detect { |mock| mock[:conditions].nil? }
+          class_mocks(query).detect { |mock| mock[:conditions].nil? } ||
+            auto_generate(query)
+    end
+
+    def auto_generate(query)
+      return nil unless auto_generator && auto_generator.respond_to?(:generate)
+      auto_generator.generate(query)
     end
 
     def missing_message(query)
