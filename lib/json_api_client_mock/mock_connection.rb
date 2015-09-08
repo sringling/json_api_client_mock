@@ -47,7 +47,9 @@ module JsonApiClientMock
 
     def auto_generate(query)
       return nil unless auto_generator && auto_generator.respond_to?(:generate)
-      auto_generator.generate(query)
+      {
+          :results => auto_generator.generate(query),
+      }
     end
 
     def missing_message(query)
