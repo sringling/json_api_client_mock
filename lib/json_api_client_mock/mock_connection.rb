@@ -49,7 +49,10 @@ module JsonApiClientMock
       return nil unless auto_generator && auto_generator.respond_to?(:generate)
       generated_results = auto_generator.generate(query)
       if generated_results.present?
-        return { :results => generated_results }
+        generated_results = HashWithIndifferentAccess.new(generated_results)
+        final_result = { :results => generated_results }
+        final_result.merge!({:meta => generated_results[:meta]}) if generated_results[:meta].present?
+        return final_result
       end
     end
 
